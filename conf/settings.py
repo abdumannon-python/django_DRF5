@@ -133,8 +133,10 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-AUTH_USER_MODEL = 'user.User'
+AUTH_USER_MODEL = 'user.CustomUser'
 
+EMAIL_EXPIRATION_TIME=2
+PHONE_EXPIRATION_TIME=3
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
