@@ -3,9 +3,14 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import FileExtensionValidator
 from shared.models import BasModel
 from datetime import datetime,timedelta
+from rest_framework_simplejwt.tokens import RefreshToken
 import uuid
 import random
 from conf.settings import EMAIL_EXPIRATION_TIME,PHONE_EXPIRATION_TIME
+
+
+
+
 ORDINARY_USER,ADMIN,MANAGER=("ordinary_user","admin",'manager')
 
 NEW,CODE_VERIFY,DONE,PHOTO_DONE =("new","code_verify",'done','photo_done')
@@ -30,8 +35,8 @@ class CustomUser(AbstractUser,BasModel):
     (VIA_PHONE,VIA_PHONE)
     )
     user_role=models.CharField(choices=USER_ROLE,default=ORDINARY_USER,max_length=30)
-    user_status=models.CharField(choices=USER_STATUS,default=NEW,max_length=20)
-    user_auth_type=models.CharField(choices=USER_AUTH_TYPE,max_length=20)
+    auth_status=models.CharField(choices=USER_STATUS,default=NEW,max_length=20)
+    auth_type=models.CharField(choices=USER_AUTH_TYPE,max_length=20)
     email = models.EmailField(max_length=50,null=True,blank=True,unique=True)
     phone_number=models.CharField(max_length=13,null=True,blank=True,unique=True)
     photo=models.ImageField(upload_to='user_photo/',blank=True,null=True,
@@ -69,6 +74,19 @@ class CustomUser(AbstractUser,BasModel):
         super().save(*args,**kwargs)
 
 
+    def token(self):
+        refresh_token=RefreshToken.for_user(self)
+        data={
+            'refresh':str(refresh_token),
+            'access':str(refresh_token.access_token)
+        }
+        return data
+
+
+    def generate_code(self,verify_type):
+        code =random.randint(1000,9999)
+
+
 
 
 
@@ -82,6 +100,7 @@ class CodeVerify(BasModel):
     code=models.CharField(max_length=4)
     verify_type=models.CharField(max_length=30,choices=VERIFY_TYPE)
     expiration_time=models.DateTimeField()
+    is_active=models.BooleanField(default=True)
 
     def save(self,*args,**kwargs):
         if self.verify_type==VIA_EMAIL:
