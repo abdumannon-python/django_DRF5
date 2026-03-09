@@ -93,8 +93,6 @@ class CustomUser(AbstractUser,BasModel):
 
 
 
-
-
 class CodeVerify(BasModel):
     VERIFY_TYPE=(
     (VIA_EMAIL,VIA_EMAIL),

@@ -3,9 +3,9 @@ from .models import CustomUser
 from shared.utility import check_email_or_phone
 from .models import VIA_PHONE,VIA_EMAIL
 from rest_framework.exceptions import ValidationError
-
 from rest_framework import status
 from django.db.models import Q
+from shared.views import send_email
 
 class SingUpSerializers(serializers.ModelSerializer):
     id=serializers.UUIDField(read_only=True)
@@ -53,8 +53,24 @@ class SingUpSerializers(serializers.ModelSerializer):
         return email_or_phone
 
     def create(self, validated_data):
-        validated_data.pop('email_or_phone', None)
+        validated_data.pop('email_or_phone',None)
         user = CustomUser.objects.create(**validated_data)
+        if user.auth_type==VIA_EMAIL:
+            code=send_email(user)
+            print(code,'eeeeeeeeeeee')
+        elif user.auth_type==VIA_PHONE:
+            code=user.generate_code(VIA_PHONE)
+            print(code,'ppppppppppppppppppppppp')
+        else:
+            raise ValidationError({
+            'message':'yuborishda xato email yoki telefon raqaimni teshiring'
+            })
         return user
 
+    def to_representation(self, instance):
+        data=super().to_representation(instance)
+        data['message']='Kodingiz yuborildi'
+        data['refresh']=instance.token()['refresh']
+        data['access'] =instance.token()['access']
+        return data
 
