@@ -63,14 +63,12 @@ class CustomUser(AbstractUser,BasModel):
             email_normalize=self.email.lower()
             self.email=email_normalize
 
-    def clean(self):
+
+
+    def save(self,*args,**kwargs):
         self.check_email()
         self.check_username()
         self.check_pass()
-        return super().clean()
-
-    def save(self,*args,**kwargs):
-        self.clean()
         super().save(*args,**kwargs)
 
 
@@ -85,6 +83,12 @@ class CustomUser(AbstractUser,BasModel):
 
     def generate_code(self,verify_type):
         code =random.randint(1000,9999)
+        CodeVerify.objects.create(
+            code=code,
+            user=self,
+            verify_type=verify_type
+        )
+        return code
 
 
 
